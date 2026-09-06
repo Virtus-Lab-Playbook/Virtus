@@ -40,6 +40,15 @@ The Operations Engine requires PostgreSQL. Start infrastructure with
 the API and team app. The first registered account becomes an admin; additional
 accounts are members unless their email is listed in `ADMIN_EMAILS`.
 
+### Local Authentication & Mock Login
+
+For local development and testing authentication in the team portal (`http://localhost:3004/login`):
+
+- **Mock Admin Email**: `admin@virtus.local` (pre-configured in `ADMIN_EMAILS` within `.env.example`)
+- **Mock Member Email**: `member@virtus.local` (or any mock address)
+
+To log in during local development, register the mock account first (with any local password) on the portal, or sign in if already created.
+
 The current repository is still a Phase 0 scaffold for business modules. The
 Docker/Nginx deployment for the five web applications is implemented in
 `infrastructure/DEPLOYMENT.md`. See `docs/PLAN.md` and `docs/MEMORY.md` for the
