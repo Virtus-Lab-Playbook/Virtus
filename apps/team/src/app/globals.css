@@ -804,6 +804,41 @@ legend {
   padding: 0 clamp(22px, 5vw, 76px) 32px;
 }
 
+.admin-denied {
+  border: 1px solid var(--line);
+  background: rgba(255, 252, 244, 0.6);
+  max-width: 560px;
+  padding: clamp(28px, 4vw, 52px);
+}
+
+.admin-denied h2 {
+  font-family: var(--display);
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+  font-weight: 500;
+  letter-spacing: -0.06em;
+  margin: 0 0 12px;
+}
+
+.admin-denied p {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.7;
+  margin: 0 0 24px;
+}
+
+.admin-denied a {
+  color: var(--accent-deep);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.admin-loading {
+  color: var(--muted);
+  font-size: 14px;
+  padding: 60px 0;
+}
+
 @media (max-width: 1000px) {
   .portal-shell {
     grid-template-columns: 1fr;

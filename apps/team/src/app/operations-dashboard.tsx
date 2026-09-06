@@ -1,13 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   ArrowUpRight,
   BadgeDollarSign,
-  Bell,
   BriefcaseBusiness,
-  CircleDashed,
   ClipboardCheck,
   FileText,
   FolderKanban,
@@ -17,73 +16,29 @@ import {
   Search,
   Settings2,
   ShieldCheck,
+  CircleDashed,
   UserCircle,
   UsersRound,
   type LucideIcon,
 } from 'lucide-react';
-import { apiRequest } from './api';
+import { ApiError, apiRequest } from './api';
+import {
+  filterOperationsData,
+  money,
+  dateLabel,
+  type Approval,
+  type Client,
+  type DomainRecord,
+  type FileRecord,
+  type Invoice,
+  type OperationsData,
+  type OverviewPayload,
+  type Project,
+} from './operations-helpers';
 
 export type OperationsView =
   'Overview' | 'Clients' | 'Projects' | 'Files' | 'Approvals' | 'Finance' | 'Domains';
 
-type Client = {
-  id: string;
-  name: string;
-  type: string;
-  owner: string;
-  valueCents: number;
-  health: string;
-};
-type Project = {
-  id: string;
-  name: string;
-  client: string;
-  engine: string;
-  progress: number;
-  due: string;
-  owner: string;
-};
-type FileRecord = { id: string; name: string; type: string; owner: string; updated: string };
-type Approval = {
-  id: string;
-  title: string;
-  context: string;
-  requested: string;
-  owner: string;
-  engine: string;
-  status: string;
-};
-type Invoice = {
-  id: string;
-  number: string;
-  client: string;
-  description: string;
-  amountCents: number;
-  status: string;
-  due: string;
-};
-type DomainRecord = {
-  id: string;
-  domain: string;
-  ip: string;
-  ipv6: string;
-  changed: string;
-};
-type OverviewPayload = {
-  metrics: { clients: number; projects: number; approvals: number; outstandingCents: number };
-  engines: { name: string; count: number }[];
-  projects: Project[];
-  approvals: Approval[];
-};
-type OperationsData = {
-  overview?: OverviewPayload | undefined;
-  clients?: Client[] | undefined;
-  projects?: Project[] | undefined;
-  files?: FileRecord[] | undefined;
-  approvals?: Approval[] | undefined;
-  invoices?: Invoice[] | undefined;
-  domains?: DomainRecord[] | undefined;
-};
 type CurrentUser = { name: string; email: string; role: 'ADMIN' | 'MEMBER' };
 
 const navigation: { label: OperationsView; href: string; icon: LucideIcon }[] = [
@@ -138,21 +93,21 @@ const engineDefinitions = [
   {
     name: 'Service',
     label: 'Service Engine',
-    href: 'http://localhost:3005',
+    href: process.env.NEXT_PUBLIC_SERVICE_URL ?? 'http://localhost:3005',
     tone: 'coral',
     icon: BriefcaseBusiness,
   },
   {
     name: 'Asset',
     label: 'Asset Engine',
-    href: 'http://localhost:3006',
+    href: process.env.NEXT_PUBLIC_ASSET_URL ?? 'http://localhost:3006',
     tone: 'sage',
     icon: ShieldCheck,
   },
   {
     name: 'Media',
     label: 'Media Engine',
-    href: 'http://localhost:3007',
+    href: process.env.NEXT_PUBLIC_MEDIA_URL ?? 'http://localhost:3007',
     tone: 'violet',
     icon: CircleDashed,
   },
@@ -196,42 +151,16 @@ const viewCopy: Record<OperationsView, { kicker: string; title: string; descript
   },
 };
 
-function money(cents: number): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    maximumFractionDigits: 0,
-  }).format(cents / 100);
-}
-
-function dateLabel(value: string): string {
-  return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(
-    new Date(value),
-  );
-}
-
-function filterOperationsData(data: OperationsData, query: string): OperationsData {
-  const normalized = query.trim().toLowerCase();
-  if (!normalized) return data;
-  const matches = (value: unknown) => JSON.stringify(value).toLowerCase().includes(normalized);
-  return {
-    ...data,
-    clients: data.clients?.filter(matches),
-    projects: data.projects?.filter(matches),
-    files: data.files?.filter(matches),
-    approvals: data.approvals?.filter(matches),
-    invoices: data.invoices?.filter(matches),
-    domains: data.domains?.filter(matches),
-    overview: data.overview
-      ? {
-          ...data.overview,
-          projects: data.overview.projects.filter(matches),
-          approvals: data.overview.approvals.filter(matches),
-          engines: data.overview.engines.filter(matches),
-        }
-      : undefined,
-  };
-}
+const dateFormatter = new Intl.DateTimeFormat('en-US', {
+  weekday: 'short',
+  month: 'short',
+  day: 'numeric',
+});
+const timeFormatter = new Intl.DateTimeFormat('en-US', {
+  hour: 'numeric',
+  minute: '2-digit',
+  second: '2-digit',
+});
 
 async function loadOperations(view: OperationsView): Promise<OperationsData> {
   switch (view) {
@@ -253,15 +182,30 @@ async function loadOperations(view: OperationsView): Promise<OperationsData> {
 }
 
 export function OperationsDashboard({ view }: { view: OperationsView }) {
+  const router = useRouter();
   const [data, setData] = useState<OperationsData | null>(null);
   const [error, setError] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [now, setNow] = useState(() => new Date());
+  const mountedRef = useRef(true);
   const copy = viewCopy[view];
 
-  const refresh = async () => {
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const refresh = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
@@ -269,22 +213,35 @@ export function OperationsDashboard({ view }: { view: OperationsView }) {
         loadOperations(view),
         apiRequest<CurrentUser>('/auth/me'),
       ]);
+      if (!mountedRef.current) return;
       setData(loadedData);
       setCurrentUser(user);
     } catch (requestError) {
+      if (!mountedRef.current) return;
+      if (requestError instanceof ApiError && requestError.unauthorized) {
+        router.replace('/login');
+        return;
+      }
       setError(
         requestError instanceof Error ? requestError.message : 'Unable to load Operations data.',
       );
     } finally {
-      setLoading(false);
+      if (mountedRef.current) setLoading(false);
     }
-  };
+  }, [router, view]);
 
   useEffect(() => {
     void refresh();
-  }, [view]);
+  }, [refresh]);
+
+  useEffect(() => {
+    if (!data) return;
+    const timer = setTimeout(() => void refresh(), 60000);
+    return () => clearTimeout(timer);
+  }, [refresh, data]);
 
   const visibleData = data ? filterOperationsData(data, query) : null;
+  const clockLabel = `${dateFormatter.format(now)} • ${timeFormatter.format(now)}`;
   const initials =
     currentUser?.name
       .split(' ')
@@ -374,24 +331,23 @@ export function OperationsDashboard({ view }: { view: OperationsView }) {
                 aria-label="Search this page"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Escape') setSearchOpen(false);
+                }}
               />
             )}
             <button
               type="button"
               aria-label="Toggle search"
+              aria-expanded={searchOpen}
               onClick={() => setSearchOpen(!searchOpen)}
             >
               <Search size={18} />
             </button>
-            <button
-              type="button"
-              aria-label="Refresh operations data"
-              onClick={() => void refresh()}
-            >
-              <Bell size={17} />
-              <i />
-            </button>
-            <span>Live data</span>
+            <span className="operations-sync" role="status" aria-label={`Local time ${clockLabel}`}>
+              <i className={error ? 'is-offline' : ''} />
+              {clockLabel}
+            </span>
           </div>
         </header>
         <div className="operations-content">
@@ -405,17 +361,14 @@ export function OperationsDashboard({ view }: { view: OperationsView }) {
               <p>{copy.description}</p>
             </div>
             <div className="operations-heading-actions">
-              <Link className="operations-secondary-action" href="/login">
+              <Link className="operations-primary" href="/login">
                 Invite teammate
               </Link>
-              <button className="operations-primary" type="button" onClick={() => void refresh()}>
-                {loading ? 'Refreshing...' : 'Refresh workspace'}
-              </button>
             </div>
           </div>
           {error && (
             <div className="operations-error">
-              <strong>Could not load live data.</strong>
+              <strong>Could not load workspace data.</strong>
               <span>{error}</span>
               <button type="button" onClick={() => void refresh()}>
                 Try again
@@ -423,7 +376,9 @@ export function OperationsDashboard({ view }: { view: OperationsView }) {
             </div>
           )}
           {loading && !data && (
-            <div className="operations-loading">Loading live Operations data...</div>
+            <div role="status" aria-label="Loading workspace">
+              <ContentSkeleton view={view} />
+            </div>
           )}
           {visibleData?.overview && view === 'Overview' && <Overview data={visibleData.overview} />}
           {visibleData?.clients && view === 'Clients' && (
@@ -434,7 +389,11 @@ export function OperationsDashboard({ view }: { view: OperationsView }) {
           )}
           {visibleData?.files && view === 'Files' && <FilesView files={visibleData.files} />}
           {visibleData?.approvals && view === 'Approvals' && (
-            <ApprovalsView approvals={visibleData.approvals} onUpdated={refresh} />
+            <ApprovalsView
+              approvals={visibleData.approvals}
+              isAdmin={currentUser?.role === 'ADMIN'}
+              onUpdated={refresh}
+            />
           )}
           {visibleData?.invoices && view === 'Finance' && (
             <FinanceView invoices={visibleData.invoices} />
@@ -445,6 +404,81 @@ export function OperationsDashboard({ view }: { view: OperationsView }) {
         </div>
       </section>
     </main>
+  );
+}
+
+function ContentSkeleton({ view }: { view: OperationsView }) {
+  if (view === 'Overview') {
+    return (
+      <>
+        <MetricsSkeleton />
+        <div className="operations-grid">
+          <section className="operations-card" aria-hidden="true">
+            <div className="operations-card-heading">
+              <span className="skeleton-line medium" />
+              <span className="skeleton-line short" />
+            </div>
+            <div className="engine-links">
+              <span className="skeleton-bar" />
+              <span className="skeleton-bar" />
+              <span className="skeleton-bar" />
+            </div>
+          </section>
+          <section className="operations-card" aria-hidden="true">
+            <div className="operations-card-heading">
+              <span className="skeleton-line medium" />
+              <span className="skeleton-line short" />
+            </div>
+            <span className="skeleton-line large" />
+            <span className="skeleton-line wide" />
+            <span className="skeleton-line" />
+          </section>
+        </div>
+        <TableSkeleton rows={4} />
+      </>
+    );
+  }
+  if (view === 'Finance') {
+    return (
+      <>
+        <MetricsSkeleton />
+        <TableSkeleton rows={6} />
+      </>
+    );
+  }
+  return <TableSkeleton rows={6} />;
+}
+
+function MetricsSkeleton() {
+  return (
+    <section className="operations-metrics" aria-hidden="true">
+      {['coral', 'sage', 'violet', 'gold'].map((tone) => (
+        <article className={`operations-metric ${tone}`} key={tone}>
+          <span className="skeleton-line short" />
+          <span className="skeleton-line large" />
+          <span className="skeleton-line short" />
+        </article>
+      ))}
+    </section>
+  );
+}
+
+function TableSkeleton({ rows = 6 }: { rows?: number }) {
+  return (
+    <section className="operations-card full-card" aria-hidden="true">
+      <div className="operations-card-heading">
+        <span className="skeleton-line medium" />
+        <span className="skeleton-line short" />
+      </div>
+      {Array.from({ length: rows }, (_, index) => (
+        <div className="skeleton-row" key={index}>
+          <span className="skeleton-avatar" />
+          <span className="skeleton-line wide" />
+          <span className="skeleton-line" />
+          <span className="skeleton-line short" />
+        </div>
+      ))}
+    </section>
   );
 }
 
@@ -595,20 +629,29 @@ function FilesView({ files }: { files: FileRecord[] }) {
 
 function ApprovalsView({
   approvals,
+  isAdmin,
   onUpdated,
 }: {
   approvals: Approval[];
+  isAdmin: boolean;
   onUpdated: () => Promise<void>;
 }) {
   const [updating, setUpdating] = useState('');
+  const [updateError, setUpdateError] = useState('');
   const update = async (id: string, status: string) => {
+    if (!isAdmin) return;
     setUpdating(id);
+    setUpdateError('');
     try {
       await apiRequest(`/operations/approvals/${id}`, {
         method: 'PATCH',
         body: JSON.stringify({ status }),
       });
       await onUpdated();
+    } catch (requestError) {
+      setUpdateError(
+        requestError instanceof Error ? requestError.message : 'Unable to update approval.',
+      );
     } finally {
       setUpdating('');
     }
@@ -616,6 +659,17 @@ function ApprovalsView({
   return (
     <section className="operations-card full-card">
       <CardHeading title="Cross-engine approval queue" href="/approvals" action="Refresh queue" />
+      {!isAdmin && (
+        <p className="operations-notice">
+          You have read-only access to approvals. Only administrators can approve or decline.
+        </p>
+      )}
+      {updateError && (
+        <div className="operations-error" role="alert">
+          <strong>Could not update approval.</strong>
+          <span>{updateError}</span>
+        </div>
+      )}
       <div className="approval-table">
         {approvals.map((approval) => (
           <div className="approval-row" key={approval.id}>
@@ -632,7 +686,8 @@ function ApprovalsView({
                 <button
                   className="review-button"
                   type="button"
-                  disabled={updating === approval.id}
+                  disabled={updating === approval.id || !isAdmin}
+                  title={isAdmin ? 'Approve this request' : 'Admin access required'}
                   onClick={() => void update(approval.id, 'APPROVED')}
                 >
                   {updating === approval.id ? 'Saving' : 'Approve'} <ArrowUpRight size={13} />
@@ -640,7 +695,8 @@ function ApprovalsView({
                 <button
                   className="decline-button"
                   type="button"
-                  disabled={updating === approval.id}
+                  disabled={updating === approval.id || !isAdmin}
+                  title={isAdmin ? 'Decline this request' : 'Admin access required'}
                   onClick={() => void update(approval.id, 'DECLINED')}
                 >
                   Decline

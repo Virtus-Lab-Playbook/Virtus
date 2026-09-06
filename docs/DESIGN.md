@@ -13,8 +13,9 @@ Use sources in this order when design documents disagree:
 2. Accepted ADRs in `docs/decisions/`
 3. This document
 4. `docs/PLAN.md`
-5. The master planning PDF
-6. Session notes and unapproved proposals
+5. `docs/Virtus_Site_Build_Plan_v2.pdf` (site-first execution blueprint, September 2026)
+6. The master planning PDF
+7. Session notes and unapproved proposals
 
 If a lower-ranked source is still useful, update it or mark it superseded instead of
 silently carrying two conflicting designs.
@@ -30,34 +31,73 @@ Status labels have precise meaning:
 
 ### Implemented
 
-- `apps/web`: Next.js application; local dev port `3003`.
+- `apps/web`: Next.js application; local dev port `3003`. Phase 1 design system
+  `Implemented`: header/footer shell with mobile nav, `Button`, `SectionHeader`,
+  `ServiceCard` (visual header with SVG icon + generative grid, `line-clamp-2`
+  copy, bento spans via `className`, hover lift/glow), `ProcessSteps` (gold number
+  badges), `Faq`, `CtaSection`, `FormField`, `StatusMessage`, `ProductMockup`
+  (CSS-only browser/prompt/board previews with hover lift + radial glow),
+  `Entrance` (reduced-motion safe), shared site data, hardened security headers,
+  custom 404/error pages. Homepage sections use hero-like depth (radial gold
+  glows + 72px grid masks, rounded products container, sticky process visual with
+  progress bar, mobile-only hero glow, bento services grid). `/services/[slug]` detail pages (offer, works, process,
+  FAQ, inquiry CTA) are `Implemented`; service cards link to them instead of the
+  removed select-and-continue inquiry flow. Detail heroes use a generative
+  animated backdrop (`framer-motion`, reduced-motion safe); scroll reveals run
+  through a global layout observer so every route animates. Homepage hero uses
+  `three.js` `HeroCanvas` with static poster fallback, off-screen pausing via
+  `IntersectionObserver` + `visibilitychange`, mobile pixel-ratio cap, foreground
+  mockup stack, stat pills, and CTAs into the dedicated `/start-project` inquiry
+  page (localStorage prototype leads feed the `#admin` demo view); marquee duplicates
+  are `aria-hidden` with hover/focus pause. Brand system `Implemented`:
+  `VirtusMark` circular V + abstract crown emblem (flat vector, `variant="dark"`
+  gold-on-transparent for dark header / `"light"` matte-black `#111111` on cream
+  `#F2EFE7` for light surfaces), `Wordmark` in display serif, favicon/OG/manifest
+  wired in `apps/web` (`icon.svg`, `favicon-16/32.png`, `apple-touch-icon.png`,
+  `virtus-mark.png`, `opengraph.png`, `manifest.webmanifest`); orphan
+  `#202923` / `#C76B49` / Arial lockups removed from `apps/web/public`.
 - `apps/team`: Next.js team intake and admin review prototype; local dev port `3004`.
 - `apps/team /domains`: Operations Engine live-domain management presentation; records are
   currently static and edits are held in browser state until a domain API is added.
-- `apps/service`: Next.js Service Engine operations dashboard prototype; local dev port `3005`.
-- `apps/asset`: Next.js Asset Engine catalog and licensing dashboard prototype; local dev port `3006`.
-- `apps/media`: Next.js Media Engine production dashboard prototype; local dev port `3007`.
-- `apps/api`: NestJS application; local dev port `4040`.
-- `apps/worker`: TypeScript worker process with Redis startup check.
-- `packages/database`: Prisma schema, generated client, and migration baseline.
-- `packages/auth`: shared identity and authorization context types.
-- `packages/permissions`: permission type and baseline check helper.
-- `packages/types`: shared health response types.
-- `packages/ui`: initial shared UI package boundary.
-- `packages/validation`: Zod environment schema.
+- `apps/api`: NestJS application; local dev port `3002` (Docker container listens on `4040`).
+- `apps/worker`: TypeScript worker placeholder with Redis startup check; no queue or job handling yet.
+- `packages/*`: shared packages (`database`, `auth`, `permissions`, `types`, `ui`,
+  `validation`) are `Proposed`; no `packages/` directory exists in the repository yet.
 - `infrastructure/docker-compose.yml`: Docker deployment for PostgreSQL, Redis,
-  the API, all five Next.js apps, and Nginx host-based routing.
-- `infrastructure/DEPLOYMENT.md`: deployment and DNS contract for the five live-view
+  the API, both Next.js apps, and Nginx host-based routing.
+- `infrastructure/DEPLOYMENT.md`: deployment and DNS contract for the two live-view
   hostnames; HTTPS certificate provisioning remains an operator step.
 - `.github/workflows/ci.yml`: frozen install, formatting, lint, typecheck, test, and build checks.
 - API `GET /health`: liveness response.
 - API `GET /ready`: configuration readiness response for database and Redis URLs.
 
-The database currently contains only the Phase 0 `SystemMetadata` model. Business
-entities, queues, object storage, and production deployment are not implemented yet.
+The database is PostgreSQL with raw-SQL migrations in `apps/api/sql/`
+(`001_operations.sql` creates `users`, `sessions`, `team_applications`,
+`clients`, `projects`, `files`, `approvals`, and `invoices`). There is no Prisma
+schema and no `packages/database` client; queues, object storage, and production
+deployment are not implemented yet.
 The Operations Engine now has PostgreSQL-backed users, sessions, team applications,
-clients, projects, files, approvals, and invoices. The Service, Asset, and Media
-Engine records remain static presentation data until their domain APIs are added.
+clients, projects, files, approvals, and invoices.
+
+`apps/service`, `apps/asset`, and `apps/media` were removed on 2026-09-06 to allow
+a clean rebuild; Service, Asset, and Media engines are `Proposed` until replacement
+apps and domain APIs land. This matches the v2 site-first deferrals (§16): asset
+commerce, media production OS, full CRM UI, client portal, and finance stay out of
+the initial public-site scope.
+
+### Accepted
+
+- Site-first execution (`docs/Virtus_Site_Build_Plan_v2.pdf`): `apps/web` is the
+  first production surface — positioning, services, proof, inquiry, and
+  discovery-call conversion — before further Virtus OS depth. The broader OS
+  remains the destination but must not block the site launch.
+- Deferred until after site launch unless a real requirement appears: full CRM UI,
+  client portal, finance module, asset commerce, media production OS, AI
+  assistant, advanced automation, and mobile app.
+- Lead payload compatibility: the site inquiry form must capture clean,
+  CRM-mappable lead data (`name`, `email`, `organization`, `service_interest`,
+  `project_description`, `budget_range`, `timeline`, `source`, `created_at`)
+  without requiring the full CRM to launch.
 
 ## Runtime Shape
 
@@ -68,18 +108,12 @@ browser
   |
   +--> team :3004
   |
-  +--> service :3005
-  |
-  +--> asset :3006
-  |
-  +--> media :3007
-  |
-  +--> api :4040
+  +--> api :3002 (local dev; :4040 inside Docker)
           |
           +--> PostgreSQL :5432
           +--> Redis :6379
 
-worker --> Redis :6379
+worker --> Redis :6379 (startup ping only; no jobs)
 ```
 
 Local PostgreSQL and Redis are started with `corepack pnpm infra:up`. The root `.env`
@@ -118,6 +152,9 @@ authentication -> organization -> user/role -> CRM -> client -> project -> task
 -> file -> invoice -> audit log -> executive dashboard
 ```
 
+The site-first execution order is: site → proof → lead capture → CRM →
+onboarding → project delivery → finance → business engines → automation.
+
 ## Change Protocol
 
 For every structural change:
@@ -149,6 +186,8 @@ affected health endpoint or application workflow.
 
 ## Open Decisions
 
+- Lock site-launch inputs per the v2 plan (§19): positioning, 4-offer service
+  hierarchy, proof inventory, and sitemap — founder-owned, before homepage build.
 - Select the production authentication provider and implement the authentication boundary.
 - Define business-unit tenancy and the complete permission matrix.
 - Define domain module ownership and database aggregates before Phase 1 entities are added.
