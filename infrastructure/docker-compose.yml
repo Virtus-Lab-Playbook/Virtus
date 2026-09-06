@@ -1,0 +1,157 @@
+services:
+  postgres:
+    image: postgres:16.4-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-virtus}
+      POSTGRES_USER: ${POSTGRES_USER:-virtus}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-virtus-local-only}
+    ports:
+      - '${POSTGRES_PORT:-5432}:5432'
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7.4-alpine
+    restart: unless-stopped
+    ports:
+      - '${REDIS_PORT:-6379}:6379'
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: ..
+      dockerfile: infrastructure/docker/api.Dockerfile
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      API_PORT: 4040
+      DATABASE_URL: postgresql://${POSTGRES_USER:-virtus}:${POSTGRES_PASSWORD:-virtus-local-only}@postgres:5432/${POSTGRES_DB:-virtus}
+      REDIS_URL: redis://redis:6379
+      AUTH_SECRET: ${AUTH_SECRET:?AUTH_SECRET must be set in .env before starting the stack}
+      ADMIN_EMAILS: ${ADMIN_EMAILS:-admin@virtus.local}
+      WEB_ORIGINS: ${WEB_ORIGINS:-http://localhost:3003,http://localhost:3004}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: ['sh', '-c', 'node apps/api/dist/migrate.js && node apps/api/dist/main.js']
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://127.0.0.1:4040/health').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  client-view:
+    build:
+      context: ..
+      dockerfile: infrastructure/docker/next.Dockerfile
+      args:
+        APP_NAME: web
+        NEXT_PUBLIC_API_URL: /api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      HOSTNAME: 0.0.0.0
+
+  operation-view:
+    build:
+      context: ..
+      dockerfile: infrastructure/docker/next.Dockerfile
+      args:
+        APP_NAME: team
+        NEXT_PUBLIC_API_URL: /api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      HOSTNAME: 0.0.0.0
+    depends_on:
+      api:
+        condition: service_healthy
+
+  service-view:
+    build:
+      context: ..
+      dockerfile: infrastructure/docker/next.Dockerfile
+      args:
+        APP_NAME: service
+        NEXT_PUBLIC_API_URL: /api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      HOSTNAME: 0.0.0.0
+
+  asset-view:
+    build:
+      context: ..
+      dockerfile: infrastructure/docker/next.Dockerfile
+      args:
+        APP_NAME: asset
+        NEXT_PUBLIC_API_URL: /api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      HOSTNAME: 0.0.0.0
+
+  media-view:
+    build:
+      context: ..
+      dockerfile: infrastructure/docker/next.Dockerfile
+      args:
+        APP_NAME: media
+        NEXT_PUBLIC_API_URL: /api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      HOSTNAME: 0.0.0.0
+
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      DOMAIN_SUFFIX: ${DEPLOY_BASE_DOMAIN:-localhost}
+    ports:
+      - '${NGINX_HTTP_PORT:-80}:80'
+    depends_on:
+      api:
+        condition: service_healthy
+      client-view:
+        condition: service_started
+      operation-view:
+        condition: service_started
+      service-view:
+        condition: service_started
+      asset-view:
+        condition: service_started
+      media-view:
+        condition: service_started
+
+volumes:
+  postgres-data:
+  redis-data:

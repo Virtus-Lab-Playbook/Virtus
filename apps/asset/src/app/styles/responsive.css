@@ -1,0 +1,141 @@
+@media (max-width: 1050px) {
+  .asset-shell {
+    grid-template-columns: 205px minmax(0, 1fr);
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .asset-shell {
+    display: block;
+  }
+
+  .asset-sidebar {
+    min-height: 0;
+    padding: 17px 20px;
+  }
+
+  .asset-brand {
+    margin: 0 0 18px;
+  }
+
+  .asset-sidebar .sidebar-label,
+  .asset-sidebar .sidebar-divider,
+  .asset-shortcuts,
+  .asset-sidebar-footer {
+    display: none;
+  }
+
+  .asset-nav {
+    display: flex;
+    gap: 2px;
+    overflow-x: auto;
+  }
+
+  .asset-nav button {
+    flex: 0 0 auto;
+    padding: 9px 10px;
+    width: auto;
+  }
+
+  .asset-nav button.is-active {
+    box-shadow: inset 0 -2px var(--sage);
+  }
+
+  .asset-header {
+    min-height: 61px;
+    padding: 0 20px;
+  }
+
+  .header-date {
+    display: none;
+  }
+
+  .asset-content {
+    padding: 48px 20px 60px;
+  }
+
+  .asset-heading {
+    align-items: flex-start;
+    display: block;
+    margin-bottom: 42px;
+  }
+
+  .asset-heading h1 {
+    font-size: 3.8rem;
+  }
+
+  .new-button {
+    margin-top: 28px;
+  }
+
+  .metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .metric-card {
+    min-height: 125px;
+    padding: 15px;
+  }
+
+  .metric-card > strong {
+    font-size: 3rem;
+  }
+
+  .asset-card {
+    overflow: hidden;
+    padding: 17px;
+  }
+
+  .table-head {
+    grid-template-columns: minmax(150px, 1fr) minmax(60px, 0.5fr) !important;
+  }
+
+  .table-head span:nth-child(2),
+  .table-head span:nth-child(3),
+  .asset-row > .asset-version,
+  .asset-row > .asset-downloads,
+  .asset-row > .asset-status,
+  .asset-type,
+  .order-row > .order-amount,
+  .order-row > .order-date,
+  .order-row > .order-status {
+    display: none;
+  }
+
+  .asset-row {
+    grid-template-columns: 31px minmax(0, 1fr) auto;
+  }
+
+  .asset-row::after {
+    color: var(--muted);
+    content: '↗';
+    font-size: 13px;
+  }
+
+  .order-table {
+    min-width: 470px;
+  }
+
+  .license-row {
+    grid-template-columns: 31px minmax(0, 1fr) 15px;
+  }
+
+  .license-type,
+  .license-expires,
+  .license-status {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

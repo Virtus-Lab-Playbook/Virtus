@@ -1,0 +1,52 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+:root {
+  --canvas: #f1eee7;
+  --canvas-deep: #e7e1d6;
+  --ink: #202923;
+  --ink-soft: #475349;
+  --muted: #7a827a;
+  --line: rgba(32, 41, 35, 0.13);
+  --accent: #c76b49;
+  --accent-deep: #9e4e36;
+  --sage: #a8be91;
+  --blue: #8ba9b5;
+  --gold: #d0ac70;
+  --display: 'Trebuchet MS', 'Avenir Next', sans-serif;
+  --body: Arial, Helvetica, sans-serif;
+}
+
+* {
+  scrollbar-color: var(--canvas-deep) transparent;
+  scrollbar-width: thin;
+}
+
+html,
+body {
+  margin: 0;
+  min-width: 320px;
+}
+
+body {
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: var(--body);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}

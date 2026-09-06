@@ -1,0 +1,31 @@
+{
+  "name": "virtus-os",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@11.0.0",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "infra:down": "docker compose -f infrastructure/docker-compose.yml down",
+    "infra:up": "docker compose -f infrastructure/docker-compose.yml up -d postgres redis",
+    "lint": "eslint .",
+    "db:generate": "corepack pnpm --filter @virtus/database generate",
+    "db:migrate": "corepack pnpm --filter @virtus/api migrate",
+    "test": "turbo run test",
+    "typecheck": "turbo run typecheck"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "@next/eslint-plugin-next": "^16.3.4",
+    "eslint": "^9.17.0",
+    "prettier": "^3.4.2",
+    "turbo": "^2.3.3",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.18.0"
+  }
+}

@@ -1,0 +1,14 @@
+.git
+.env
+node_modules
+**/node_modules
+.next
+**/.next
+dist
+**/dist
+.turbo
+**/.turbo
+coverage
+postgres-data
+redis-data
+*.log
