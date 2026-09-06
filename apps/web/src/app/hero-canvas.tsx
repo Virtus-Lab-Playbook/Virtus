@@ -26,7 +26,9 @@ export function HeroCanvas() {
           alpha: true,
           powerPreference: 'high-performance',
         });
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
+        renderer.setPixelRatio(
+          Math.min(window.devicePixelRatio, window.innerWidth < 768 ? 1.5 : 1.75),
+        );
         renderer.setSize(canvas.clientWidth, canvas.clientHeight, false);
         renderer.outputColorSpace = THREE.SRGBColorSpace;
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -101,7 +103,25 @@ export function HeroCanvas() {
 
         const clock = new THREE.Clock();
         let frame = 0;
+        let visible = true;
+        const setVisible = (next: boolean) => {
+          if (next === visible) return;
+          visible = next;
+          if (visible) {
+            frameLoop();
+          } else {
+            window.cancelAnimationFrame(frame);
+          }
+        };
+        const observer = new IntersectionObserver(
+          (entries) => setVisible(entries[0]?.isIntersecting ?? true),
+          { threshold: 0 },
+        );
+        observer.observe(canvas);
+        const onVisibility = () => setVisible(document.visibilityState === 'visible');
+        document.addEventListener('visibilitychange', onVisibility);
         const frameLoop = () => {
+          if (!visible) return;
           const time = clock.getElapsedTime();
           knot.rotation.y += 0.0024;
           wire.rotation.y = knot.rotation.y;
@@ -115,6 +135,9 @@ export function HeroCanvas() {
         frameLoop();
 
         cleanup = () => {
+          setVisible(false);
+          observer.disconnect();
+          document.removeEventListener('visibilitychange', onVisibility);
           window.cancelAnimationFrame(frame);
           window.removeEventListener('pointermove', onPointerMove);
           window.removeEventListener('resize', resize);
@@ -136,7 +159,11 @@ export function HeroCanvas() {
 
   return (
     <div className="canvas-wrap">
-      <canvas id="hero-canvas" ref={canvasRef} />
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 bg-[radial-gradient(circle_at_65%_30%,rgba(200,169,107,.18),transparent_55%),linear-gradient(145deg,#1e1b16,#090909)]"
+      />
+      <canvas id="hero-canvas" ref={canvasRef} className="relative" />
     </div>
   );
 }

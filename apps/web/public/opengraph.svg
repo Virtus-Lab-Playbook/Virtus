@@ -1,0 +1,10 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" fill="#090909"/>
+  <circle cx="600" cy="250" r="110" fill="none" stroke="#C8A96B" stroke-width="5"/>
+  <path d="M512 210h22L600 340 666 210h22L616 400h-32L512 210Z" fill="#C8A96B"/>
+  <path d="M558 178l12-20 30 12 30-12 12 20-42 12-42-12Z" fill="#C8A96B"/>
+  <g text-anchor="middle" font-family="Georgia, 'Times New Roman', serif">
+    <text x="600" y="480" fill="#F2EFE7" font-size="72" font-weight="700" letter-spacing="14">VIRTUS</text>
+    <text x="600" y="540" fill="#C8A96B" font-size="32" font-weight="700" letter-spacing="18">LABS</text>
+  </g>
+</svg>

@@ -57,6 +57,30 @@
     background: var(--color-virtus-gold);
     color: var(--color-virtus-black);
   }
+
+  :focus-visible {
+    outline: 2px solid var(--color-virtus-gold);
+    outline-offset: 3px;
+  }
+
+  .skip-link {
+    position: fixed;
+    top: -100px;
+    left: 1rem;
+    z-index: 200;
+    border-radius: 999px;
+    background: var(--color-virtus-gold);
+    color: var(--color-virtus-black);
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 0.65rem 1.1rem;
+    transition: top 0.2s ease;
+  }
+
+  .skip-link:focus-visible {
+    top: 1rem;
+    outline-offset: 2px;
+  }
 }
 
 @layer components {
@@ -152,6 +176,11 @@
     animation: ticker 28s linear infinite;
   }
 
+  .ticker-track:hover,
+  .ticker-track:focus-within {
+    animation-play-state: paused;
+  }
+
   @keyframes ticker {
     to {
       transform: translateX(-50%);
@@ -164,30 +193,6 @@
     margin: 0 1.7rem;
     font-size: 0.55em;
     vertical-align: 0.15em;
-  }
-
-  .modal-backdrop {
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.25s ease;
-  }
-
-  .modal-backdrop.open {
-    opacity: 1;
-    pointer-events: auto;
-  }
-
-  .modal-panel {
-    transform: translateY(30px) scale(0.985);
-    opacity: 0;
-    transition:
-      transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
-      opacity 0.25s ease;
-  }
-
-  .modal-backdrop.open .modal-panel {
-    transform: none;
-    opacity: 1;
   }
 
   .reveal {
@@ -238,5 +243,12 @@
   .reveal {
     opacity: 1 !important;
     transform: none !important;
+  }
+}
+
+@media (forced-colors: active) {
+  .gold-text {
+    background: none;
+    color: CanvasText;
   }
 }

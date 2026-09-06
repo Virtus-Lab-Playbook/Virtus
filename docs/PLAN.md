@@ -9,6 +9,26 @@ Media, and Shared Operations engines. The first usable target is:
 
 `authentication -> organization -> users/roles -> CRM -> client -> project -> task -> file -> invoice -> audit log -> executive dashboard`
 
+## Site-First Execution (v2)
+
+`docs/Virtus_Site_Build_Plan_v2.pdf` (Version 2.0, September 2026) narrows the
+first build to one outcome: a credible public website that attracts, explains,
+qualifies, and converts. Core decision: do not build the entire operating system
+before the site can sell the business. The website becomes the first production
+surface and the front door to CRM, lead generation, onboarding, projects, and
+eventually the shared Virtus OS.
+
+Build now: public website, brand system, service pages, portfolio/case studies,
+inquiry flow, discovery-call booking, content system, analytics, SEO, legal pages.
+Connect later: CRM, client onboarding, task queueing, payments, project delivery,
+finance, asset/media engines, AI automation.
+
+First milestone (A): a visitor can land on Virtus, understand the offer, view
+credible work, submit a project inquiry, and book a discovery call. Once this
+works, expand the site — not before. The Phase 1–8 sequence below remains the
+operating-system destination; the site is built first and connected to it as the
+acquisition front end.
+
 ## Constraints
 
 - Start as a modular monolith; do not split domains into services without evidence.
