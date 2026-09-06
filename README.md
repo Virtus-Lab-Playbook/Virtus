@@ -46,8 +46,9 @@ For local development and testing authentication in the team portal (`http://loc
 
 - **Mock Admin Email**: `admin@virtus.local` (pre-configured in `ADMIN_EMAILS` within `.env.example`)
 - **Mock Member Email**: `member@virtus.local` (or any mock address)
+- **Mock Password**: `password123` (or `virtus-local-only`; minimum 8 characters)
 
-To log in during local development, register the mock account first (with any local password) on the portal, or sign in if already created.
+To log in during local development, register the mock account first (e.g., using `password123`) on the portal, or sign in if already registered.
 
 The current repository is still a Phase 0 scaffold for business modules. The
 Docker/Nginx deployment for the five web applications is implemented in
