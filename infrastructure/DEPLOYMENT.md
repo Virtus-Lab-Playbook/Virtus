@@ -1,15 +1,12 @@
 # Docker Deployment
 
-The production-shaped stack runs the five web applications behind one Nginx
+The production-shaped stack runs the two web applications behind one Nginx
 container. The public host mapping is:
 
-| Host                           | Application    | Internal port |
-| ------------------------------ | -------------- | ------------: |
-| `client-view.<base-domain>`    | `apps/web`     |        `3003` |
-| `operation-view.<base-domain>` | `apps/team`    |        `3004` |
-| `service-view.<base-domain>`   | `apps/service` |        `3005` |
-| `asset-view.<base-domain>`     | `apps/asset`   |        `3006` |
-| `media-view.<base-domain>`     | `apps/media`   |        `3007` |
+| Host                           | Application | Internal port |
+| ------------------------------ | ----------- | ------------: |
+| `client-view.<base-domain>`    | `apps/web`  |        `3003` |
+| `operation-view.<base-domain>` | `apps/team` |        `3004` |
 
 The containers listen on port `3000` internally. Nginx exposes port `80` and
 routes by the `Host` header. The API is available to the browser at `/api` and
@@ -21,11 +18,8 @@ Create these A records at the DNS provider, replacing `example.com` with the
 actual parent domain:
 
 ```text
-asset-view.example.com      A    134.185.84.235
 client-view.example.com     A    134.185.84.235
-media-view.example.com      A    134.185.84.235
 operation-view.example.com  A    134.185.84.235
-service-view.example.com    A    134.185.84.235
 ```
 
 No AAAA records should be added until an IPv6 address is assigned. The current
@@ -56,8 +50,7 @@ Virtus Nginx listener on port `80`.
 
 On the current host, the existing Caddy instance owns ports `80` and `443`.
 Its `/home/ubuntu/ai/Caddyfile` now forwards matching
-`client-view.*`, `operation-view.*`, `service-view.*`, `asset-view.*`, and
-`media-view.*` hosts to the Virtus Nginx listener on
+`client-view.*` and `operation-view.*` hosts to the Virtus Nginx listener on
 `host.docker.internal:8080`. This keeps the existing AI, portfolio, and n8n
 routes intact.
 
@@ -66,15 +59,12 @@ Verify host routing from the server before DNS propagation:
 ```bash
 curl -H 'Host: client-view.example.com' http://127.0.0.1/
 curl -H 'Host: operation-view.example.com' http://127.0.0.1/
-curl -H 'Host: service-view.example.com' http://127.0.0.1/
-curl -H 'Host: asset-view.example.com' http://127.0.0.1/
-curl -H 'Host: media-view.example.com' http://127.0.0.1/
 ```
 
 ## HTTPS
 
 The included Nginx configuration is HTTP-only so it can start without
 certificates. Before exposing the stack to real users, terminate HTTPS at this
-Nginx instance using certificates issued for all five hostnames, or put a
+Nginx instance using certificates issued for both hostnames, or put a
 trusted TLS load balancer in front of it. Port `443` is intentionally not
 published until certificates and renewal are configured.

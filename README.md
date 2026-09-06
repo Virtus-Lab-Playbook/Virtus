@@ -26,10 +26,8 @@ corepack pnpm build
 
 Run the API locally with `corepack pnpm --filter @virtus/api dev`. Its liveness
 endpoint is `http://localhost:4040/health` and its readiness endpoint is
-`http://localhost:4040/ready`. The public web app runs at `http://localhost:3003`,
-the team portal at `http://localhost:3004`, and the Service Engine at
-`http://localhost:3005`. The Asset Engine runs at `http://localhost:3006`, and the
-Media Engine runs at `http://localhost:3007`.
+`http://localhost:4040/ready`. The public web app runs at `http://localhost:3003`
+and the team portal at `http://localhost:3004`.
 Run all persistent development tasks together with `corepack pnpm dev`.
 
 Prisma migration scripts explicitly load the root `.env` because pnpm runs package
@@ -41,11 +39,10 @@ the API and team app. The first registered account becomes an admin; additional
 accounts are members unless their email is listed in `ADMIN_EMAILS`.
 
 The current repository is still a Phase 0 scaffold for business modules. The
-Docker/Nginx deployment for the five web applications is implemented in
+Docker/Nginx deployment for the two web applications is implemented in
 `infrastructure/DEPLOYMENT.md`. See `docs/PLAN.md` and `docs/MEMORY.md` for the
 planning and durable-memory rules.
 
-The five web applications can be run behind the Docker/Nginx deployment in
-`infrastructure/DEPLOYMENT.md`. The deployment maps `client-view`,
-`operation-view`, `service-view`, `asset-view`, and `media-view` to the five
-Next.js apps and uses `134.185.84.235` as the documented IPv4 target.
+The two web applications can be run behind the Docker/Nginx deployment in
+`infrastructure/DEPLOYMENT.md`. The deployment maps `client-view` and
+`operation-view` to the two Next.js apps and uses `134.185.84.235` as the documented IPv4 target.

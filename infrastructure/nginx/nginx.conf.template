@@ -15,18 +15,6 @@ upstream operation_view_upstream {
   server operation-view:3000;
 }
 
-upstream service_view_upstream {
-  server service-view:3000;
-}
-
-upstream asset_view_upstream {
-  server asset-view:3000;
-}
-
-upstream media_view_upstream {
-  server media-view:3000;
-}
-
 server {
   listen 80 default_server;
   server_name _;
@@ -48,32 +36,5 @@ server {
   include /etc/nginx/templates/virtus-proxy.conf;
   location / {
     proxy_pass http://operation_view_upstream;
-  }
-}
-
-server {
-  listen 80;
-  server_name service-view.${DOMAIN_SUFFIX};
-  include /etc/nginx/templates/virtus-proxy.conf;
-  location / {
-    proxy_pass http://service_view_upstream;
-  }
-}
-
-server {
-  listen 80;
-  server_name asset-view.${DOMAIN_SUFFIX};
-  include /etc/nginx/templates/virtus-proxy.conf;
-  location / {
-    proxy_pass http://asset_view_upstream;
-  }
-}
-
-server {
-  listen 80;
-  server_name media-view.${DOMAIN_SUFFIX};
-  include /etc/nginx/templates/virtus-proxy.conf;
-  location / {
-    proxy_pass http://media_view_upstream;
   }
 }

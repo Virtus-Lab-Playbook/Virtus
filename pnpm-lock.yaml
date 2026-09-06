@@ -88,81 +88,6 @@ importers:
         specifier: ^4.19.2
         version: 4.23.13
 
-  apps/asset:
-    dependencies:
-      lucide-react:
-        specifier: ^0.468.0
-        version: 0.468.0(react@19.2.8)
-      next:
-        specifier: ^15.5.7
-        version: 15.5.25(@types/node@22.20.1)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      react:
-        specifier: ^19.1.0
-        version: 19.2.8
-      react-dom:
-        specifier: ^19.1.0
-        version: 19.2.8(react@19.2.8)
-    devDependencies:
-      '@types/node':
-        specifier: ^22.10.2
-        version: 22.20.1
-      '@types/react':
-        specifier: ^19.0.3
-        version: 19.2.18
-      '@types/react-dom':
-        specifier: ^19.0.2
-        version: 19.2.7(@types/react@19.2.18)
-
-  apps/media:
-    dependencies:
-      lucide-react:
-        specifier: ^1.41.0
-        version: 1.41.0(react@19.2.8)
-      next:
-        specifier: ^15.5.7
-        version: 15.5.25(@types/node@22.20.1)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      react:
-        specifier: ^19.1.0
-        version: 19.2.8
-      react-dom:
-        specifier: ^19.1.0
-        version: 19.2.8(react@19.2.8)
-    devDependencies:
-      '@types/node':
-        specifier: ^22.10.2
-        version: 22.20.1
-      '@types/react':
-        specifier: ^19.0.3
-        version: 19.2.18
-      '@types/react-dom':
-        specifier: ^19.0.2
-        version: 19.2.7(@types/react@19.2.18)
-
-  apps/service:
-    dependencies:
-      lucide-react:
-        specifier: ^1.41.0
-        version: 1.41.0(react@19.2.8)
-      next:
-        specifier: ^15.5.7
-        version: 15.5.25(@types/node@22.20.1)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      react:
-        specifier: ^19.1.0
-        version: 19.2.8
-      react-dom:
-        specifier: ^19.1.0
-        version: 19.2.8(react@19.2.8)
-    devDependencies:
-      '@types/node':
-        specifier: ^22.10.2
-        version: 22.20.1
-      '@types/react':
-        specifier: ^19.0.3
-        version: 19.2.18
-      '@types/react-dom':
-        specifier: ^19.0.2
-        version: 19.2.7(@types/react@19.2.18)
-
   apps/team:
     dependencies:
       lucide-react:
@@ -1633,11 +1558,6 @@ packages:
 
   lodash@4.18.1:
     resolution: {integrity: sha512-dMInicTPVE8d1e5otfwmmjlxkZoUpiVLwyeTdUsi/Caj/gfzzblBcCE5sRHV/AsjuCmxWrte2TNGSYuCeCq+0Q==}
-
-  lucide-react@0.468.0:
-    resolution: {integrity: sha512-6koYRhnM2N0GGZIdXzSeiNwguv1gt/FAjZOiPl76roBi3xKEXa4WmfpxgQwTTL4KipXjefrnf3oV4IsYhi4JFA==}
-    peerDependencies:
-      react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0-rc
 
   lucide-react@1.41.0:
     resolution: {integrity: sha512-6lksP35l6KszDKUeRTi4LV7i6DEe0Yzl2ALJm9j4c5xEYN91GdW1xGsawGMOg2mgjF5GHBVX8pKX9kP+cWsP3Q==}
@@ -3430,10 +3350,6 @@ snapshots:
   lodash.once@4.1.1: {}
 
   lodash@4.18.1: {}
-
-  lucide-react@0.468.0(react@19.2.8):
-    dependencies:
-      react: 19.2.8
 
   lucide-react@1.41.0(react@19.2.8):
     dependencies:

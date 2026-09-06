@@ -90,45 +90,6 @@ services:
       api:
         condition: service_healthy
 
-  service-view:
-    build:
-      context: ..
-      dockerfile: infrastructure/docker/next.Dockerfile
-      args:
-        APP_NAME: service
-        NEXT_PUBLIC_API_URL: /api
-    restart: unless-stopped
-    environment:
-      NODE_ENV: production
-      PORT: 3000
-      HOSTNAME: 0.0.0.0
-
-  asset-view:
-    build:
-      context: ..
-      dockerfile: infrastructure/docker/next.Dockerfile
-      args:
-        APP_NAME: asset
-        NEXT_PUBLIC_API_URL: /api
-    restart: unless-stopped
-    environment:
-      NODE_ENV: production
-      PORT: 3000
-      HOSTNAME: 0.0.0.0
-
-  media-view:
-    build:
-      context: ..
-      dockerfile: infrastructure/docker/next.Dockerfile
-      args:
-        APP_NAME: media
-        NEXT_PUBLIC_API_URL: /api
-    restart: unless-stopped
-    environment:
-      NODE_ENV: production
-      PORT: 3000
-      HOSTNAME: 0.0.0.0
-
   nginx:
     build:
       context: ./nginx
@@ -144,12 +105,6 @@ services:
       client-view:
         condition: service_started
       operation-view:
-        condition: service_started
-      service-view:
-        condition: service_started
-      asset-view:
-        condition: service_started
-      media-view:
         condition: service_started
 
 volumes:
